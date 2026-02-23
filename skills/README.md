@@ -13,6 +13,7 @@
 
 | Skill | Purpose |
 | --- | --- |
+| `auto-number` | Reusable file sequence numbering with prefix (`NNNN-name`) and suffix (`name-NNNN`) modes. Auto-consulted by `/issue-context` and available for direct use by other skills. |
 | `code-ref` | Defines permalink format for code references (`path/to/file.ts#L10-L20`). Claude auto-consults when generating file/line references. |
 | `file-placement` | Decision tree for where to put different file types. Claude auto-consults when deciding output locations. |
 | `issue-context` | Detects issue context from git branch name, determines subdirectory organization and `NNNN` file numbering. Claude auto-consults when foundation skills need directory placement. |
@@ -34,6 +35,8 @@
 **Two-tier design:** Foundation skills define standalone conventions (file formats, numbering, placement rules). Composite skills orchestrate workflows by referencing foundations by name — they never inline foundation definitions.
 
 **Non-invocable skills** (`user-invocable: false`) don't appear in the `/` menu but their descriptions load into Claude's context. Claude auto-consults them when the context matches (e.g., generating code references, deciding where to put files).
+
+**Script-backed skills:** When a skill's logic is purely deterministic (no judgment calls, no context-dependent decisions), a Bash script is more token-efficient than inline markdown instructions. Claude executes one Bash call instead of reasoning through the algorithm each time. `auto-number` is the first skill to use this pattern — see its `## Design` section for the rationale.
 
 ## Step Tracking
 
