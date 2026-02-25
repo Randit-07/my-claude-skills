@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <meta name="description" content="{{ description }}">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:type" content="article">
+
+  <link rel="stylesheet" href="{{ css_path }}">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-rule"></div>
+    <p class="header-label">Case Study</p>
+    <h1>{{ title }}</h1>
+    <p class="subtitle">{{ subtitle }}</p>
+    <div class="header-meta">
+      <span>{{ exchange_count }} exchanges</span>
+      <span class="meta-sep">/</span>
+      <span>{{ phase_count }} phases</span>
+      <span class="meta-sep">/</span>
+      <span>{{ artifact_count }} artifacts</span>
+    </div>
+  </header>
+
+  <nav class="progress-bar" aria-label="Phase navigation">
+    <div class="progress-bar-inner">
+      {% for phase in phases %}
+      <a class="progress-phase" href="#phase-{{ phase.number }}" data-phase="{{ phase.number }}">
+        <span class="progress-dot progress-dot--{{ phase.number }}"></span>
+        <span class="progress-label">{{ phase.title | truncate(20, true, '…') }}</span>
+        <span class="progress-count">{{ phase.exchanges | length }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </nav>
+
+  <div class="timeline-spine">
+    <main class="site-content">
+      {{ content }}
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-rule"></div>
+    <div class="footer-links">
+      <a href="https://github.com/couimet/my-claude-skills">Repository</a>
+      <a href="https://github.com/couimet/my-claude-skills#readme">README</a>
+      <a href="https://github.com/couimet/my-claude-skills/tree/main/demo/real-life">Raw Artifacts</a>
+    </div>
+  </footer>
+
+  <script src="{{ js_path }}"></script>
+</body>
+</html>

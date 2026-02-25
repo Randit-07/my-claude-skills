@@ -1,0 +1,23 @@
+<article class="exchange-card phase-{{ phase.number }}" id="exchange-{{ exchange.number }}">
+  <div class="card-gutter">
+    <span class="exchange-number">{{ '%02d' | format(exchange.number) }}</span>
+  </div>
+  <div class="card-body">
+    <header class="card-header">
+      <span class="phase-badge phase-badge--{{ phase.number }}">{{ phase.title | truncate(24, true, '…') }}</span>
+      <time class="card-date" datetime="{{ exchange.date }}">{{ exchange.date }}</time>
+    </header>
+    <h3 class="card-title">{{ exchange.title }}</h3>
+    <div class="card-prose">
+      {{ exchange.prose_html }}
+    </div>
+    {% if exchange.artifacts %}
+    <div class="card-artifacts">
+      <p class="artifacts-label">Artifacts</p>
+      {% for artifact_html in exchange.artifact_panels %}
+      {{ artifact_html }}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</article>
