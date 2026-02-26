@@ -49,7 +49,7 @@ Where `<ID>` or `<slug>` is the value extracted in Step 1.
 
 **If file doesn't exist**, create it with header:
 
-- For issues: `# Breadcrumbs for Issue #<identifier>`
+- For issues: `# Breadcrumbs for Issue https://github.com/{owner}/{repo}/issues/{identifier}`  ← full URL per /github-ref
 - For side-quests: `# Breadcrumbs for Side-Quest: <identifier>`
 
 **Append the entry:**
@@ -78,3 +78,5 @@ Do NOT print the full file contents — keep it minimal.
 ## Prose Style
 
 Format all prose output per the `/prose-style` skill conventions.
+
+Format all GitHub references per the `/github-ref` skill conventions.

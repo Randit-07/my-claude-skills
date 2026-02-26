@@ -153,9 +153,11 @@ Print a summary:
 Created: <ISSUE_URL>
 Title: <TITLE>
 Labels: <LABEL1>, <LABEL2>
-Parent: #<PARENT_NUMBER> (linked as sub-issue)  ← only if applicable
+Parent: https://github.com/{OWNER}/{REPO}/issues/{PARENT_NUMBER} (linked as sub-issue)  ← only if applicable; full URL per /github-ref
 ```
 
 Format all code references per the `/code-ref` skill conventions.
 
 Format all prose output per the `/prose-style` skill conventions.
+
+Format all GitHub references per the `/github-ref` skill conventions.
