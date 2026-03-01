@@ -48,7 +48,7 @@ Extract the breadcrumb identifier based on branch pattern:
 
 Where `<ID>` or `<slug>` is the value extracted in Step 1.
 
-**If file doesn't exist**, create it with header:
+**If file doesn't exist**, create it with `<!-- markdownlint-disable MD013 -->` as the very first line, then the header:
 
 - For issues: `# Breadcrumbs for Issue https://github.com/{owner}/{repo}/issues/{identifier}`  ← full URL per /github-ref
 - For side-quests: `# Breadcrumbs for Side-Quest: <identifier>`
@@ -78,6 +78,6 @@ Do NOT print the full file contents — keep it minimal.
 
 ## Prose Style
 
-Format all prose output per the `/prose-style` skill conventions.
+Never hard-wrap prose output — each paragraph is one continuous line; line breaks for structure only.
 
 Format all GitHub references per the `/github-ref` skill conventions.
