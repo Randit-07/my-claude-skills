@@ -115,14 +115,14 @@ Parse `OWNER` and `REPO` from the issue URL returned in Step 6 (`https://github.
 Capture the node IDs into shell variables and link in a single script — do not transcribe IDs manually:
 
 ```bash
-NODES=$(gh api graphql -H 'GraphQL-Features: sub_issues' -f query='
-  query($owner: String!, $repo: String!, $parent: Int!, $child: Int!) {
-    repository(owner: $owner, name: $repo) {
-      parent: issue(number: $parent) { id }
-      child:  issue(number: $child)  { id }
-    }
-  }
-' -f owner=OWNER -f repo=REPO -F parent=PARENT_NUMBER -F child=CHILD_NUMBER)
+jq -n \
+  --arg owner "$OWNER" \
+  --arg repo "$REPO" \
+  --argjson parent "$PARENT_NUMBER" \
+  --argjson child "$CHILD_NUMBER" \
+  '{"query": "query($owner: String!, $repo: String!, $parent: Int!, $child: Int!) { repository(owner: $owner, name: $repo) { parent: issue(number: $parent) { id } child: issue(number: $child) { id } } }", "variables": {"owner": $owner, "repo": $repo, "parent": $parent, "child": $child}}' \
+  > /tmp/gql-nodes.json
+NODES=$(gh api graphql -H 'GraphQL-Features: sub_issues' --input /tmp/gql-nodes.json)
 
 PARENT_NODE_ID=$(echo "$NODES" | jq -r '.data.repository.parent.id // empty')
 CHILD_NODE_ID=$(echo "$NODES"  | jq -r '.data.repository.child.id // empty')
@@ -132,14 +132,11 @@ if [[ -z "$PARENT_NODE_ID" || -z "$CHILD_NODE_ID" ]]; then
   exit 0
 fi
 
-gh api graphql -H 'GraphQL-Features: sub_issues' -f query='
-  mutation($parentId: ID!, $childId: ID!) {
-    addSubIssue(input: {issueId: $parentId, subIssueId: $childId}) {
-      issue    { number title }
-      subIssue { number title }
-    }
-  }
-' -f parentId="$PARENT_NODE_ID" -f childId="$CHILD_NODE_ID"
+jq -n --arg parentId "$PARENT_NODE_ID" --arg childId "$CHILD_NODE_ID" \
+  '{"query": "mutation($parentId: ID!, $childId: ID!) { addSubIssue(input: {issueId: $parentId, subIssueId: $childId}) { issue { number title } subIssue { number title } } }", "variables": {"parentId": $parentId, "childId": $childId}}' \
+  > /tmp/gql-mutation.json
+
+gh api graphql -H 'GraphQL-Features: sub_issues' --input /tmp/gql-mutation.json
 ```
 
 If the script returns an error (e.g., `"NOT_FOUND"`, `"FORBIDDEN"`, or an unknown field/mutation), skip sub-issue linking and note the failure in the Step 8 report as:
