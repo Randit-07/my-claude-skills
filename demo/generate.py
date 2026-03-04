@@ -14,6 +14,7 @@ Usage:
 
 import argparse
 import difflib
+import html as html_lib
 import http.server
 import json
 import os
@@ -135,6 +136,10 @@ def parse_timeline(timeline_path):
     prose_lines = []
     # Accumulator for intro lines between a phase heading and its first exchange.
     phase_intro_lines = []
+    # Accumulator for the document-level intro paragraph (between H1 and first ## Phase).
+    doc_intro_lines = []
+    doc_intro_done = False    # True once the first blank line after content is seen
+    doc_intro_started = False  # True once the first prose line is seen
     # Track whether we've seen the date line for the current exchange.
     seen_date = False
 
@@ -208,6 +213,28 @@ def parse_timeline(timeline_path):
                     parse_artifact_ref(art_match)
                 )
 
+        # Accumulate document intro (between H1 and first ## Phase heading).
+        # Skip structural/non-prose lines (horizontal rules, headings, fenced
+        # code fences, lines with no alphanumeric characters) both before the
+        # first prose line is seen and within the paragraph.
+        if title and current_phase is None and not doc_intro_done:
+            stripped = line.strip()
+            if not doc_intro_started:
+                # Before prose begins: skip blank lines and structural markers.
+                if stripped and any(ch.isalnum() for ch in stripped) \
+                        and not re.match(r'^[-=*`#]{3,}', stripped):
+                    doc_intro_started = True
+                    doc_intro_lines.append(stripped)
+            else:
+                # Inside the paragraph: blank line ends it; structural lines
+                # are skipped; prose lines are appended.
+                if stripped == "":
+                    doc_intro_done = True
+                elif any(ch.isalnum() for ch in stripped) \
+                        and not re.match(r'^[-=*`#]{3,}', stripped):
+                    doc_intro_lines.append(stripped)
+            continue
+
         # Accumulate phase intro lines (between ## phase heading and first ### exchange).
         if current_phase is not None and current_exchange is None:
             if line.strip() not in ("", "---"):
@@ -232,6 +259,7 @@ def parse_timeline(timeline_path):
 
     return {
         "title": title,
+        "description": " ".join(doc_intro_lines).strip(),
         "phases": phases,
     }
 
@@ -363,6 +391,17 @@ def render_prose(markdown_text):
     return _md(markdown_text)
 
 
+def markdown_to_plain_text(markdown_text):
+    """Render markdown to HTML then strip tags and decode entities.
+
+    Used for meta descriptions and plain-text surfaces (e.g. the landing card,
+    which is an <a> element and cannot contain nested anchors).
+    """
+    rendered = render_prose(markdown_text)
+    text = re.sub(r"<[^>]+>", "", rendered)
+    return html_lib.unescape(" ".join(text.split()))
+
+
 def build_demo(demo_dir, env):
     """Generate the site for a single demo directory."""
     timeline_path = demo_dir / "TIMELINE.md"
@@ -371,6 +410,14 @@ def build_demo(demo_dir, env):
 
     # Parse the timeline.
     data = parse_timeline(timeline_path)
+    if not data.get("description"):
+        sys.exit(
+            f"Error: {timeline_path} has no intro paragraph. "
+            "Add a description paragraph after the H1 and before the first ## Phase heading."
+        )
+
+    # Plain-text description for meta tags: render markdown then strip HTML tags.
+    description_plain = markdown_to_plain_text(data["description"])
 
     # Prepare output directory.
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -432,8 +479,8 @@ def build_demo(demo_dir, env):
     template = env.get_template("base.html")
     html = template.render(
         title=data.get("title", f"Demo: {demo_name}"),
-        subtitle="Every exchange, every artifact, every diff — captured as it happened.",
-        description=f"A real-time case study of building {data.get('title', demo_name)} with Claude Code skills.",
+        subtitle=data["description"],
+        description=description_plain,
         css_path=css_path,
         js_path=js_path,
         content=content_html,
@@ -452,16 +499,26 @@ def build_landing(demo_dirs, env):
     """Generate demo/site/index.html — a landing page listing all demos."""
     demos = []
     for demo_dir in demo_dirs:
-        data = parse_timeline(demo_dir / "TIMELINE.md")
+        timeline_path = demo_dir / "TIMELINE.md"
+        data = parse_timeline(timeline_path)
+        if not data.get("description"):
+            sys.exit(
+                f"Error: {timeline_path} has no intro paragraph. "
+                "Add a description paragraph after the H1 and before the first ## Phase heading."
+            )
         total_exchanges = sum(len(p["exchanges"]) for p in data["phases"])
         total_artifacts = sum(
             len(e["artifacts"])
             for p in data["phases"]
             for e in p["exchanges"]
         )
+        # Strip markdown to plain text for the landing card: the card is itself
+        # an <a> element, so nested anchors would be invalid HTML.
+        description_plain = markdown_to_plain_text(data["description"])
         demos.append({
             "name": demo_dir.name,
             "title": data.get("title", demo_dir.name),
+            "description": description_plain,
             "phase_count": len(data["phases"]),
             "exchange_count": total_exchanges,
             "artifact_count": total_artifacts,
@@ -532,6 +589,12 @@ def main():
         autoescape=True,
     )
     env.filters["markdown"] = lambda t: Markup(render_prose(t))
+    def inline_md(text):
+        rendered = render_prose(text)
+        m = re.fullmatch(r"\s*<p>(.*?)</p>\s*", rendered, flags=re.DOTALL)
+        return Markup(m.group(1) if m else rendered)
+
+    env.filters["inline_md"] = inline_md
 
     if args.debug:
         for demo_dir in demos:
