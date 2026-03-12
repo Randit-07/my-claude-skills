@@ -4,6 +4,8 @@ Claude Code is powerful, but out-of-the-box sessions are ephemeral — context e
 
 This is a collection of portable [Claude Code skills](https://code.claude.com/docs/en/skills) that add lightweight workflow conventions to every project I work on. They've been iterated over many real issues, PR reviews, and side-quests. Nothing here is theoretical — I use every one of these daily.
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/couimet/my-claude-skills?utm_source=oss&utm_medium=github&utm_campaign=couimet%2Fmy-claude-skills&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 ## Installation
 
 ```bash
