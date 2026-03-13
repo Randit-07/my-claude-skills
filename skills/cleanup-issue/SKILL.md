@@ -1,6 +1,6 @@
 ---
 name: cleanup-issue
-version: 2026.03.13@139f974
+version: 2026.03.13.1@5f166ac
 description: Delete an issue's working directory (.claude-work/issues/<ID>/) after confirming with the user via interactive prompt
 argument-hint: [optional: issue-number]
 allowed-tools: Read, Glob, AskUserQuestion, Bash(git branch --show-current), Bash(rm -rf .claude-work/issues/*)
