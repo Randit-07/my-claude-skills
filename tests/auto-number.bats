@@ -223,18 +223,32 @@ SCRIPT="$PROJECT_ROOT/skills/auto-number/auto-number.sh"
   [[ "$output" == "auto-number E002 error: "* ]]
 }
 
-@test "positional 'prefix' exits E002 with did-you-mean hint" {
+@test "positional 'prefix' is tolerated as --mode prefix" {
+  touch "$TEST_TEMP_DIR/0003-foo.txt"
   run "$SCRIPT" "$TEST_TEMP_DIR" prefix
-  [ "$status" -eq 1 ]
-  [[ "$output" == "auto-number E002 error: "* ]]
-  [[ "$output" == *"did you mean: --mode prefix"* ]]
+  [ "$status" -eq 0 ]
+  [ "$output" = "0004" ]
 }
 
-@test "positional 'suffix' exits E002 with did-you-mean hint" {
+@test "positional 'suffix' is tolerated as --mode suffix" {
+  touch "$TEST_TEMP_DIR/foo-0003.txt"
   run "$SCRIPT" "$TEST_TEMP_DIR" suffix
+  [ "$status" -eq 0 ]
+  [ "$output" = "0004" ]
+}
+
+@test "duplicate positional mode 'prefix suffix' exits with E002" {
+  run "$SCRIPT" "$TEST_TEMP_DIR" prefix suffix
   [ "$status" -eq 1 ]
   [[ "$output" == "auto-number E002 error: "* ]]
-  [[ "$output" == *"did you mean: --mode suffix"* ]]
+  [[ "$output" == *"mode already set"* ]]
+}
+
+@test "positional mode after --mode flag exits with E002" {
+  run "$SCRIPT" "$TEST_TEMP_DIR" --mode prefix suffix
+  [ "$status" -eq 1 ]
+  [[ "$output" == "auto-number E002 error: "* ]]
+  [[ "$output" == *"mode already set"* ]]
 }
 
 # --- Flag without value (last argument) ---
