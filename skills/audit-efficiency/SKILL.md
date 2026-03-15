@@ -1,6 +1,6 @@
 ---
 name: audit-efficiency
-version: 2026.03.15@99e0f99
+version: 2026.03.15@113d69b
 description: Audit a skills directory for token-consumption inefficiencies — shell-script candidates, parallelization opportunities, and cross-reference loading overhead. Outputs a structured report with HIGH/MEDIUM/LOW impact ratings.
 argument-hint: [skills-dir]
 allowed-tools: Read, Glob, Grep
