@@ -4,6 +4,9 @@ Claude Code is powerful, but out-of-the-box sessions are ephemeral — context e
 
 This is a collection of portable [Claude Code skills](https://code.claude.com/docs/en/skills) that add lightweight workflow conventions to every project I work on. They've been iterated over many real issues, PR reviews, and side-quests. Nothing here is theoretical — I use every one of these daily.
 
+> **Want to see these skills in action?** Read the [full follow-along](https://ouimet.info/follow-alongs/my-claude-skills-issues-10.html) — a real issue turned into a shipped PR, with every artifact visible.
+
+[![Follow-along](https://img.shields.io/badge/Follow--along-See%20it%20in%20action-blue)](https://ouimet.info/follow-alongs/my-claude-skills-issues-10.html)
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/couimet/my-claude-skills?utm_source=oss&utm_medium=github&utm_campaign=couimet%2Fmy-claude-skills&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 ## Installation
@@ -273,6 +276,13 @@ Scratchpad drafted during implementation → real GitHub issue, labels applied, 
 ### Following along
 
 The [`demo/real-life/issues-10/`](demo/real-life/issues-10/) folder contains every artifact from this issue's lifecycle — scratchpads, questions, commit messages, and README snapshots — numbered chronologically. [`TIMELINE.md`](demo/real-life/issues-10/TIMELINE.md) provides the narrative context for each one.
+
+## Featured In
+
+The most recent posts are at the top.
+
+- [From Vide Coding to Supercharged Vibe Guiding](https://dev.to/couimet/from-vide-coding-to-supercharged-vibe-guiding-6nm) - DEV Community
+- [Claude skills: issues-10](https://ouimet.info/follow-alongs/my-claude-skills-issues-10.html) — a full follow-along showing how these skills turned a blank issue into a shipped PR, with every artifact visible
 
 ## Why I Built These
 
