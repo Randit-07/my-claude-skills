@@ -16,18 +16,52 @@ Create a commit message file in `.claude-work/`. The user reviews and runs `git 
 
 Focus on **WHY**, not **WHAT**. The git diff already shows what changed — the commit message explains the motivation, the problem being solved, and the benefits. Message depth should scale with the cognitive load of the change — not every commit needs a body or Benefits section.
 
-## Directory and Numbering
+## Step 1: Determine Target Directory and Filename
 
-Follow the `/issue-context` skill to determine the target directory and `NNNN` file sequence number. The type subdirectory is `commit-msgs/`.
+Run these two commands as parallel tool calls — they are independent. The `auto-number.sh` invocation in the "Sequence number" section below is NOT parallel with these; it must run afterward because it takes the branch-derived target directory as input.
 
-- Issue-scoped: `.claude-work/issues/<ID>/commit-msgs/NNNN-description.txt`
-- Flat (no issue context): `.claude-work/commit-msgs/NNNN-description.txt`
+```bash
+git branch --show-current
+```
 
-## Naming Pattern
+```bash
+skills/ensure-gitignore/ensure-gitignore.sh
+```
 
-The filename is `NNNN-description.txt` where `NNNN` comes from `/issue-context` auto-numbering.
+### Target directory
 
-Derive the description slug from $ARGUMENTS (lowercase, hyphens, no special chars).
+If the branch starts with `issues/`, extract the issue ID: take the characters after `issues/` up to the first `-` or `_`, but only if those characters are purely numeric. Otherwise the ID is the full string after `issues/`.
+
+Examples:
+
+- `issues/332` → ID is `332`
+- `issues/332-add-parser` → ID is `332`
+- `issues/rfc-auth` → ID is `rfc-auth` (not purely numeric before `-`)
+- `main`, `side-quest/foo`, `feature/bar` → no issue context
+
+Target directory:
+
+- **On an issue branch:** `.claude-work/issues/<ID>/commit-msgs/`
+- **Otherwise:** `.claude-work/commit-msgs/`
+
+### Sequence number
+
+Run:
+
+```bash
+skills/auto-number/auto-number.sh <target-directory> --glob "*.txt" --width 4 --mkdir
+```
+
+Use the stdout (e.g., `0001`) as the `NNNN` value. The `--mkdir` flag creates the directory if it does not exist, so the script works on a fresh checkout.
+
+### Filename
+
+`<target-directory>/NNNN-<slug>.txt` where `<slug>` is derived from $ARGUMENTS (lowercase, replace spaces and special characters with hyphens, collapse consecutive hyphens, trim leading/trailing hyphens).
+
+Examples:
+
+- `.claude-work/issues/332/commit-msgs/0001-add-parser.txt`
+- `.claude-work/commit-msgs/0012-refactor-api.txt`
 
 ## Complexity Assessment
 
