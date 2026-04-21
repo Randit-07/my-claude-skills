@@ -16,15 +16,23 @@ Remove an issue's working directory after the work is done. Uses `AskUserQuestio
 
 If `$ARGUMENTS` is provided and is a number, use it as the issue ID.
 
-Otherwise, detect from the current branch using `/issue-context` branch detection rules:
+Otherwise, detect from the current branch:
 
 ```bash
 git branch --show-current
 ```
 
-Extract the issue ID from `issues/<ID>` pattern. If the branch doesn't match `issues/*`, and no argument was provided, STOP:
+Extract the issue ID from the `issues/<ID>` pattern (numeric prefix before the first `-`/`_` when present, otherwise the full segment after `issues/`). If the branch doesn't match `issues/*`, and no argument was provided, STOP:
 
 - Print: "No issue context found. Provide an issue number: `/cleanup-issue 42`"
+
+### Validate the ID
+
+Before proceeding, the extracted ID MUST match `^[A-Za-z0-9._-]+$`. If it contains slashes, whitespace, shell metacharacters, or path-traversal sequences (`..`, `/`, spaces, `*`, `$`, backticks, etc.), STOP immediately:
+
+- Print: "Refusing to proceed: extracted issue ID `<ID>` contains unsafe characters. Expected `[A-Za-z0-9._-]+`."
+
+This is a hard guard: the ID is interpolated into `rm -rf .claude-work/issues/<ID>` in Step 4, and an unsanitized value (e.g. `..` or one with embedded path separators) could delete the wrong directory. Fail closed on any surprise.
 
 ## Step 2: Check for Issue Directory
 
@@ -66,6 +74,8 @@ AskUserQuestion(
 
 ### Delete
 
+Only reached if the ID passed the whitelist check in Step 1. Do not run this step otherwise.
+
 ```bash
 rm -rf .claude-work/issues/<ID>
 ```
@@ -93,6 +103,6 @@ Glob(pattern="commit-msgs/*side-quest*", path=".claude-work")
 
 **If no side-quest artifacts found:** skip silently.
 
-## Output Format
+## Formatting
 
-Never hard-wrap prose output — each paragraph is one continuous line; line breaks for structure only.
+See `/prose-style` for hard-wrap rules.

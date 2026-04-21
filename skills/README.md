@@ -11,24 +11,32 @@
 | `commit-msg` | `/commit-msg <desc>` | Creates `.claude-work/commit-msgs/NNNN-description.txt` |
 | `breadcrumb` | `/breadcrumb <note>` | Appends timestamped note to `.claude-work/issues/<ID>/breadcrumb.md` |
 
-## Non-Invocable Skills (auto-consulted by Claude)
+## Non-Invocable Skills
+
+Non-invocable skills (`user-invocable: false`) don't appear in the `/` menu. They load into Claude's context two different ways, so the table below splits them by mechanism.
+
+### Auto-consulted skills (description matches task → body loads as context)
 
 | Skill | Purpose |
 | --- | --- |
-| `auto-number` | Reusable file sequence numbering with prefix (`NNNN-name`) and suffix (`name-NNNN`) modes. Called directly by `/question`, `/scratchpad`, `/commit-msg`, and `/issue-context`. |
-| `code-ref` | Defines permalink format for code references (`path/to/file.ts#L10-L20`). Claude auto-consults when generating file/line references. |
-| `ensure-gitignore` | Checks that `.gitignore` contains the Claude working directory sentinel and appends it if missing. One Bash call — no file contents loaded into context. Called directly by `/question`, `/scratchpad`, `/commit-msg`, and `/issue-context`. |
-| `file-placement` | Decision tree for where to put different file types. Claude auto-consults when deciding output locations. |
-| `label-discovery` | Fetches GitHub labels, classifies them as defaults vs structured, and prompts the user for selection. Auto-consulted by `/create-github-issue`. |
-| `issue-context` | Detects issue context from git branch name, documents the `NNNN` organization convention, and provides the ID-extraction rules that `/breadcrumb`, `/cleanup-issue`, and `/start-issue` consult when reasoning about issue-scoped paths. |
-| `scratchpad-ref-format` | Defines the 4 invocation forms for referencing scratchpad steps (`#S`, `#L`, space-separated, bare-path auto-select). Auto-consulted by `/tackle-scratchpad-block` when parsing its argument. |
+| `/file-placement` | Decision tree for where to put different file types. Claude auto-consults when deciding output locations. |
+| `/label-discovery` | Fetches GitHub labels, classifies them as defaults vs structured, and prompts the user for selection. Auto-consulted by `/create-github-issue`. |
+| `/prose-style` | Canonical prose and reference formatting rules — hard-wrap rule, code-reference syntax, GitHub-reference syntax. Auto-consulted whenever a skill produces file content. |
+| `/scratchpad-ref-format` | Defines the 4 invocation forms for referencing scratchpad steps (`#S`, `#L`, space-separated, bare-path auto-select). Auto-consulted by `/tackle-scratchpad-block` when parsing its argument. |
+
+### Script-backed / reference-only skills (invoked via Bash or referenced by explicit contract)
+
+| Skill | Purpose |
+| --- | --- |
+| `/auto-number` | Reusable file sequence numbering with prefix (`NNNN-name`) and suffix (`name-NNNN`) modes. Called by `target-path.sh` and directly by skills that need the next number in a directory. |
+| `/ensure-gitignore` | Checks that `.gitignore` contains the Claude working directory sentinel and appends it if missing. One Bash call — no file contents loaded into context. Called directly by `/question`, `/scratchpad`, `/commit-msg`. |
+| `/issue-context` | Thin pointer skill for `target-path.sh` — the shell script that resolves `.claude-work/` file paths from the current git branch. Not auto-consulted; referenced by contract. |
 
 ## Composite Skills (higher-level workflows)
 
 | Skill | Invocation | Foundation Dependencies |
 | --- | --- | --- |
-| `audit-efficiency` | `/audit-efficiency [skills-dir]` | Read, Glob, Grep |
-| `cleanup-issue` | `/cleanup-issue [number]` | `/issue-context` |
+| `cleanup-issue` | `/cleanup-issue [number]` | (inline branch parsing) |
 | `create-github-issue` | `/create-github-issue <title-or-path>` | `/scratchpad` (reads), `/question`, `/label-discovery` |
 | `finish-issue` | `/finish-issue` | `/scratchpad` (reads), `/question`, breadcrumbs (reads); handles both `issues/*` and `side-quest/*` branches |
 | `start-issue` | `/start-issue <url>` | `/scratchpad`, `/question`, `/cleanup-issue` |
@@ -38,13 +46,13 @@
 
 ## Architecture
 
-**Two-tier design:** Foundation skills define standalone conventions (file formats, numbering, placement rules). Composite skills orchestrate workflows by referencing foundations by name — they never inline foundation definitions.
+**Two-tier design:** Foundation skills define standalone conventions (file formats, numbering, placement rules). Composite skills orchestrate workflows by referencing foundations by name. In rare cases where a composite needs only a two-line foundation detail, it may deliberately inline that rule rather than cross-reference — the current example is `/cleanup-issue`, which inlines the branch-parsing rule instead of pulling in a foundation for it.
 
 **Non-invocable skills** (`user-invocable: false`) don't appear in the `/` menu but their descriptions load into Claude's context. Claude auto-consults them when the context matches (e.g., generating code references, deciding where to put files).
 
 **Script-backed skills:** When a skill's logic is purely deterministic (no judgment calls, no context-dependent decisions), a Bash script is more token-efficient than inline markdown instructions. Most skills describe an algorithm in Markdown and let Claude reason through it each invocation. That works well for complex decisions but wastes tokens on deterministic logic. A script executes in one Bash call and returns a single line of stdout — Claude spends zero tokens on the algorithm itself.
 
-`auto-number` uses this pattern because "scan directory, find max number, add 1, zero-pad" is purely mechanical, and auto-numbering runs on every `/scratchpad`, `/commit-msg`, and `/question` invocation. `ensure-gitignore` does the same for its read-check-append operation — foundation skills call it before creating any file, so the naive approach (read `.gitignore` into context, check for a sentinel, append if missing) would waste tokens on every invocation. Both scripts return a single word and let Claude focus on decisions only it can make.
+Three scripts follow this pattern. `auto-number` handles "scan directory, find max number, add 1, zero-pad" — purely mechanical, runs on every `/scratchpad`, `/commit-msg`, and `/question` invocation. `ensure-gitignore` handles its read-check-append operation before creating any file. `target-path.sh` (in `skills/issue-context/`) combines branch detection, issue-ID extraction, slug normalization, and auto-numbering into one call and is the sole path-resolver for `/scratchpad`, `/question`, and `/commit-msg`. All three return a single line of output and let Claude focus on decisions only it can make.
 
 ## Step Tracking
 
