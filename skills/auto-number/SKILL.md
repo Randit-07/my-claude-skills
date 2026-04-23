@@ -13,7 +13,7 @@ Returns the next available sequence number for files in a directory. Run the scr
 ## Usage
 
 ```bash
-skills/auto-number/auto-number.sh <directory> [--mode prefix|suffix] [--glob PATTERN] [--width N]
+~/.claude/skills/auto-number/auto-number.sh <directory> [--mode prefix|suffix] [--glob PATTERN] [--width N]
 ```
 
 **Arguments:**
@@ -30,13 +30,13 @@ skills/auto-number/auto-number.sh <directory> [--mode prefix|suffix] [--glob PAT
 ```bash
 # Next prefix number in .claude-work/issues/5/commit-msgs/ (default mode, default width)
 # NOTE: do NOT pass "prefix" as a positional argument — just omit --mode
-skills/auto-number/auto-number.sh .claude-work/issues/5/commit-msgs
+~/.claude/skills/auto-number/auto-number.sh .claude-work/issues/5/commit-msgs
 
 # Next suffix number, only counting .json files
-skills/auto-number/auto-number.sh some/dir --mode suffix --glob "*.json"
+~/.claude/skills/auto-number/auto-number.sh some/dir --mode suffix --glob "*.json"
 
 # Next number with 6-digit padding
-skills/auto-number/auto-number.sh some/dir --width 6
+~/.claude/skills/auto-number/auto-number.sh some/dir --width 6
 ```
 
 ## Common Mistakes
@@ -45,19 +45,19 @@ skills/auto-number/auto-number.sh some/dir --width 6
 
 ```bash
 # This will fail with: E002 error: unexpected argument 'prefix'
-skills/auto-number/auto-number.sh .claude-work/issues/5/scratchpads prefix
+~/.claude/skills/auto-number/auto-number.sh .claude-work/issues/5/scratchpads prefix
 ```
 
 **RIGHT** — omit `--mode` entirely for prefix (it is the default):
 
 ```bash
-skills/auto-number/auto-number.sh .claude-work/issues/5/scratchpads
+~/.claude/skills/auto-number/auto-number.sh .claude-work/issues/5/scratchpads
 ```
 
 **RIGHT** — use `--mode` flag when explicitly specifying a mode:
 
 ```bash
-skills/auto-number/auto-number.sh .claude-work/issues/5/scratchpads --mode suffix
+~/.claude/skills/auto-number/auto-number.sh .claude-work/issues/5/scratchpads --mode suffix
 ```
 
 ## Behavior
